@@ -27,25 +27,27 @@ public interface SongRepository extends JpaRepository<Song, Long> {
     @Query(value = "SELECT" +
             "            s.song_name AS songName," +
             "            s.song_id AS songUuid," +
-            "            AVG(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) THEN s.review_rating ELSE 0 END) AS ratingThisMonth," +
-            "            AVG(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) - 1 THEN s.review_rating ELSE 0 END) AS ratingPreviousMonth," +
-            "            AVG(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) - 2 THEN s.review_rating ELSE 0 END) AS rating2MonthsBack," +
-            "           (AVG(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) THEN s.review_rating ELSE 0 END) - " +
-            "AVG(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) - 1 THEN s.review_rating ELSE 0 END)) as difference" +
+            "            AVG(NULLIF(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE()) THEN s.review_rating ELSE 0 END, 0)) AS ratingThisMonth," +
+            "            AVG(NULLIF(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE()) - 1 THEN s.review_rating ELSE 0 END, 0)) AS ratingPreviousMonth," +
+            "            AVG(NULLIF(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE()) - 2 THEN s.review_rating ELSE 0 END, 0)) AS rating2MonthsBack," +
+            "           (AVG(NULLIF(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE()) THEN s.review_rating ELSE 0 END, 0)) - " +
+            "AVG(NULLIF(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE()) - 1 THEN s.review_rating ELSE 0 END, 0))) as difference" +
             "            FROM Song s" +
             "            GROUP BY s.song_Name, s.song_id" +
+            "            HAVING difference >= 0.0" +
             "            ORDER BY difference DESC" +
             "            LIMIT 100", nativeQuery = true)
     List<TrendingSongReportProjection> generateTrending100SongsReport();
 
-    @Query(value = "SELECT " +
+    @Query(value =
+            "SELECT " +
             "s.song_name AS songName, " +
             "s.song_id AS songUuid, " +
-            "AVG(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) THEN s.review_rating ELSE 0 END) AS ratingThisMonth, " +
-            "AVG(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) - 1 THEN s.review_rating ELSE 0 END) AS ratingPreviousMonth, " +
-            "AVG(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) - 2 THEN s.review_rating ELSE 0 END) AS rating2MonthsBack " +
+            "AVG(NULLIF(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) THEN s.review_rating ELSE 0 END, 0)) AS ratingThisMonth, " +
+            "AVG(NULLIF(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) - 1 THEN s.review_rating ELSE 0 END, 0)) AS ratingPreviousMonth, " +
+            "AVG(NULLIF(CASE WHEN EXTRACT(MONTH FROM s.timestamp) = EXTRACT(MONTH FROM CURRENT_DATE) - 2 THEN s.review_rating ELSE 0 END, 0)) AS rating2MonthsBack " +
             "FROM Song s " +
-            "GROUP BY s.song_Name, s.song_id " +
+            "GROUP BY s.song_name, s.song_id " +
             "HAVING (ratingPreviousMonth - ratingThisMonth) >= 0.4", nativeQuery = true)
     List<TrendingSongReportProjection> findSongsWithRatingDecrease();
 }

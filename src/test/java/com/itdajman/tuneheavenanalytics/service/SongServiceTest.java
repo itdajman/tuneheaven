@@ -15,6 +15,7 @@ import java.util.List;
 
 import com.itdajman.tuneheavenanalytics.model.dto.AverageRatingDto;
 import com.itdajman.tuneheavenanalytics.repository.SongRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -64,9 +65,9 @@ public class SongServiceTest {
         //given
         String songId = "123";
         List<AverageRatingDto> expectedResults = new ArrayList<>();
-        expectedResults.add(new AverageRatingDto("202401", "4,25"));
-        expectedResults.add(new AverageRatingDto("202402", "4,75"));
-        expectedResults.add(new AverageRatingDto("202403", "4,15"));
+        expectedResults.add(new AverageRatingDto("202401", "4.25"));
+        expectedResults.add(new AverageRatingDto("202402", "4.75"));
+        expectedResults.add(new AverageRatingDto("202403", "4.15"));
 
         //when
         when(songRepository.findAverageRatingForSongIdAndDateRange(eq(songId), any(), any())).thenReturn(4.25, 4.75, 4.15);
@@ -74,6 +75,6 @@ public class SongServiceTest {
 
         //then
         verify(songRepository, times(3)).findAverageRatingForSongIdAndDateRange(eq(songId), any(), any());
-        assertEquals(expectedResults, result);
+        Assertions.assertIterableEquals(expectedResults, result);
     }
 }
